@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+    {% block head %}  
+    
+    {% endblock %}
+    {% block navbar %}  
+    
+    {% endblock %}
+
+      {% block body%}
+      <div class="container">
+        <form>
+            <div class="row">
+          <div class="col-2">
+            <label for="class-select">MyBag For : </label>
+          </div>
+          <div class="col-6">
+            <select class="form-select" disabled>
+              
+            <option>{{ credentials['gradeData'] }}</option>
+            </select>
+          </div>
+        </div>
+        <hr>
+        </form>
+      </div>
+      <div class="container">
+        <div class="row">
+        <div class="col-2">
+            <label for="timetablechange">Change Day/Date : </label>
+        </div>
+        <div class="col-5">
+            <select class="form-select" name="monday-period_{{i}}" aria-label="Default select example" name="day_date_select">
+                {% for value in days %}
+                <option value="{{ value }}">{{ value }}</option>
+                
+                {% endfor %}
+              
+            </select>
+        </div>
+        <div class="col-3">
+            <a href="/submitDay">
+            <button class="btn btn-success">
+                Enter
+            </button>
+        </a>
+        </div>
+    </div>
+    <br>
+      <!-- {% for i in range(1,13) %} -->
+      
+      <form action="/submitTimetable" method="POST">
+        
+        <div class="row">
+          
+          <div class="col-2 text-left">
+            Period - {{ i }}
+          </div>
+          <div class="col-2"  style="background-color: blueviolet;">
+            <select class="form-select" name="monday-period_{{i}}" aria-label="Default select example">
+              <option value="-">-</option>
+                {% for value in subject %}
+                <option value="{{ value }}">{{ value }}</option>
+                
+                {% endfor %}
+              </select>
+          </div>
+          <div class="col-2"  style="background-color: blueviolet;">
+            <select class="form-select" name="monday-period_{{i}}" aria-label="Default select example">
+              <option value="-">-</option>
+                {% for value in subject %}
+                <option value="{{ value }}">{{ value }}</option>
+                
+                {% endfor %}
+              </select>
+          </div>
+          <div class="col-2"  style="background-color: blueviolet;">
+            <select class="form-select" name="monday-period_{{i}}" aria-label="Default select example">
+              <option value="-">-</option>
+                {% for value in subject %}
+                <option value="{{ value }}">{{ value }}</option>
+                
+                {% endfor %}
+              </select>
+          </div>
+          <div class="col-2"  style="background-color: blueviolet;">
+            <select class="form-select" name="monday-period_{{i}}" aria-label="Default select example">
+              <option value="-">-</option>
+                {% for value in subject %}
+                <option value="{{ value }}">{{ value }}</option>
+                
+                {% endfor %}
+              </select>
+          </div>
+          <!-- <div class="col" style="background-color:red;">
+            <select class="form-select" name="tuesday-period_{{i}}" aria-label="Default select example">
+              <option value="-">-</option>
+              {% for value in subject %}
+              <option value="{{ value }}">{{ value }}</option>
+              
+              {% endfor %}
+                
+              </select>
+          </div>
+          <div class="col">
+            <select class="form-select" name="wednesday-period_{{i}}" aria-label="Default select example">
+              <option value="-">-</option>
+              {% for value in subject %}
+              <option value="{{ value }}">{{ value }}</option>
+              
+              {% endfor %}
+              </select>
+          </div>
+          <div class="col">
+            <select class="form-select" name="thursday-period_{{i}}" aria-label="Default select example">
+              <option value="-">-</option>
+              {% for value in subject %}
+              <option value="{{ value }}">{{ value }}</option>
+              
+              {% endfor %}
+              </select>
+          </div>
+          <div class="col">
+            <select class="form-select" name="friday-period_{{i}}" aria-label="Default select example">
+              <option value="{{ value }}">-</option>
+              {% for value in subject %}
+              <option value="{{ value }}">{{ value }}</option>
+              
+              {% endfor %}
+              </select>
+          </div>
+          <div class="col">
+            <select class="form-select" name="saturday-period_{{i}}" aria-label="Default select example">
+              <option value="-">-</option>
+              {% for value in subject %}
+              <option value="{{ value }}">{{ value }}</option>
+              
+              {% endfor %}
+              </select>
+          </div> -->
+          
+        </div>
+        
+      
+        
+      
+      <!-- {% endfor %} -->
+      <div class="container">
+        <div class="col-11">
+
+        </div>
+        <div class="col-1">
+          <button type="submit" class="btn btn-primary text-right"> Submit</button>
+        </div>
+
+        
+      </div>
+    </form>
+</div>
+    </div>
+      {% endblock %}
+    
+    {% block siuu %}
+    <nav class="navbar sticky-bottom bg-body-tertiary" style="height:80px">
+      <div class="container-fluid">
+        <a href="{{ url_for('single') }}"><button class="btn btn-success" >Login as student</button></a>
+      </div>
+    </nav>
+    {% endblock %}

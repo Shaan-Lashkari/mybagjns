@@ -1,58 +1,248 @@
-# Program to Upload Color Image and convert into Black & White image
-import os
-from flask import  Flask, request, redirect, url_for, render_template
-from werkzeug.utils import secure_filename
-import cv2
-import numpy as np
+from flask import Flask, render_template, url_for, session,request, redirect
+from datetime import timedelta
+import hashlib
+import requests
+import airtable
+from pydantic import BaseModel
+import json
+from datetime import datetime as d
 
-app = Flask(__name__)
+sessionActive=""
+BASE_ID = "appTZGqtLSClGCdCo"
+TABLE_NAME = "notesFromTeacher"
+API_KEY = "keyxJJCgmuon6ezwN"
 
-# Open and redirect to default upload webpage
-@app.route('/')
-def load_form():
-    return render_template('upload.html')
-
-
-# Function to upload image and redirect to new webpage
-@app.route('/gray', methods=['POST'])
-def upload_image():
-    file = request.files['file']
-    filename = secure_filename(file.filename)
-
-    file_data = make_grayscale(file.read())
-    with open(os.path.join('static/', filename),
-              'wb') as f:
-        f.write(file_data)
-
-    display_message = 'Image successfully uploaded and displayed below'
-    return render_template('upload.html', filename=filename, message = display_message)
+app= Flask(__name__)
 
 
+endpoint = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_NAME}"
 
-def make_grayscale(input_image):
+header = {
+        "Authorization":f"Bearer {API_KEY}",
+        "Content-Type":"application/json"
+}
 
-    image_array = np.fromstring(input_image, dtype='uint8')
-    print('Image Array:',image_array)
+def delete_records(records):
+    """Delete the records."""
+    url = f"{AIRTABLE_URL}/golf-scores"
+    headers = {
+        'Authorization': f'Bearer {AIRTABLE_TOKEN}',
+        'Content-Type': 'application/json'
+    }
 
-    # decode the array into an image
-    decode_array_to_img = cv2.imdecode(image_array, cv2.IMREAD_UNCHANGED)
-    print('Decode values of Image:', decode_array_to_img)
+    params = {
+        "records[]": records
+    }
 
-    # Make grayscale
-    converted_gray_img = cv2.cvtColor(decode_array_to_img, cv2.COLOR_RGB2GRAY)
-    status, output_image = cv2.imencode('.PNG', converted_gray_img)
-    print('Status:',status)
+    response = requests.request("DELETE", url, headers=headers, params=params)
 
-    return output_image
+    return response
+
+def get_from_airtable_field(table_name,field):
+    endpoint = f"https://api.airtable.com/v0/{BASE_ID}/{table_name}"
+    response = requests.get(endpoint, headers=header)
+    data = response.json()
+    
+    count = 0
+    subject_names = []
+
+    for d in data['records']:
+        name = data['records'][count]['fields'][field]
+        
+        count = count + 1
+        subject_names.append(name)
+
+    
+    
+    return subject_names
+
+# class teacherMaster(BaseModel):
+#     teacherMasterKey : int
+#     teacherName : str
+#     gradeData : str
+
+# class RecordsItems(BaseModel):
+#     id:str
+#     fields: teacherMaster
+
+# class ReturnJson(BaseModel):
+#     records: list[RecordsItems] = [] 
+
+def get_from_airtable_record(table_name,field_name,field_value,field_name2,field_value2):
+    
+    endpoint = f"https://api.airtable.com/v0/{BASE_ID}/{table_name}?filterByFormula=AND({field_name2}='{field_value2}',{field_name}='{field_value}')"
+    #https://api.airtable.com/v0/appTZGqtLSClGCdCo/subjectMaster
+    response = requests.get(endpoint, headers=header)
+    data = response.json()
+    # returnJson : ReturnJson = ReturnJson(**data)        
+    # print("Result New : " , returnJson.records[0].fields)    
+    return data['records'][0]['fields']
 
 
-@app.route('/display/<filename>')
-def display_image(filename):
-    return redirect(url_for('static', filename=filename))
+def add_to_db(table_name,dict_fields):    
+    endpoint = f"https://api.airtable.com/v0/{BASE_ID}/{table_name}"
+    new_data = {
+        "records": [
+            {
+                "fields": dict_fields
+            },
+        ]
+    }
+    r = requests.post(endpoint,json=new_data,headers=header)
+   
+
+app= Flask(__name__)
+
+app.secret_key = 'yo'
+app.permanent_session_lifetime = timedelta(minutes=10)
+
+@app.route('/home')
+
+def single():
+    return render_template('home.html')
+
+@app.route('/studentLogin',methods=['POST','GET'])
+def studentLogin():
+    session.permanent = True
+    
+    grade = request.form['grade']
+    division = request.form['division']
+    name = request.form['name']
+    session["student"] = {'name':name,'grade':grade,'division':division}
+    info = session['student']
+    return redirect(url_for('student'))
+    # info = session["user"]
+    # u_name = info['name']
+    # return f'Name : { u_name }'
+    
+@app.route('/student',methods=['POST','GET'])
+def student():
+    if 'student' in session:
+        info = session["student"]
+        return render_template('student.html',studentData=info)
+    else:
+        return redirect(url_for('single'))
+
+@app.route('/teacher')
+def teacher():
+    return render_template('teacher_login.html')
+
+app.secret_key = 'shaanlashkari9898780706'
+app.permanent_session_lifetime = timedelta(minutes=10)
 
 
+@app.route('/teacherSubmitForm',methods=['POST'])
 
-if __name__ == "__main__":
-    app.run()
+def teacherSubmitForm():
+    session.permanent = True
+    name = request.form['uid']
+    pwd = request.form['password']
+    
+    pwd_encode = pwd.encode()
+    pwd_hash = hashlib.sha256(pwd_encode)
+    pwdFinal = pwd_hash.hexdigest()
+    print(pwdFinal)
+    
+    try:
+        airtable_data = get_from_airtable_record('teacherMaster','teacherName',name,'password',pwdFinal)
+        session['teacherDashboard'] = airtable_data
+        print(session['teacherDashboard'])
+        
+        return redirect(url_for('teacherDb'))
+        
+    except:
+        print('doesnt exist')
+        return render_template('teacher_login.html',message='Sorry! Username or Password is wrong!')
+    
+        
+    
+    # if name in teacherName:
+    #     if pwdFinal in teacherPassword:
+    #         grade = teacherGrade
+    #         session["teacherDashboard"] = {'name':name,'password':pwdFinal,'grade':grade}
+    #         return redirect(url_for('teacherDb'))
+    #     else:
+    #         return render_template('teacher_login.html',message='Sorry! Username or \
+    #             Password is wrong!')
 
+    # else:
+    #     return render_template('teacher_login.html',message='Sorry! Username or Password \
+    #         is wrong!')
+        
+        
+    
+    
 
+@app.route('/teacher-dashboard')
+def teacherDb():
+    
+    if 'teacherDashboard' in session:
+        info = session["teacherDashboard"]
+       
+        return render_template('teacher_dashboard.html',teacherInfo=info)
+    else:
+        return redirect(url_for('single'))
+        
+@app.route('/timetable')
+def timetable():
+
+    if 'teacherDashboard' in session:
+        option = get_from_airtable_record('teacherMaster','teacherMasterKey','15','gradeData','7D')
+        # key = get_from_airtable_record('subjectMaster','subjectKey')
+        subjects = get_from_airtable_field('subjectMaster','subject_name') 
+        return render_template('timetable.html',credentials=option,subject = subjects)
+    else:
+        return redirect(url_for('single'))
+   
+@app.route('/submitTimetable',methods=['post'])
+def submitTimetable():
+    information = session['teacherDashboard']
+    grade = information['gradeData']
+    name = information['teacherName']
+
+    
+    for i in range(1,13):
+        i = str(i)
+        tue = request.form['tuesday-period_'+i]
+        mon = request.form['monday-period_'+i]
+        
+        print(tue)
+        wed = request.form['wednesday-period_'+i]
+        thu = request.form['thursday-period_'+i]
+        fri = request.form['friday-period_'+i]
+        sat = request.form['saturday-period_'+i]
+        data_entry= {
+            'classDivision':grade,
+            'period':int(i),
+            'monday':mon,
+            'tuesday':tue,
+            'wednesday':wed,
+            'thursday':thu,
+            'friday':fri,
+            'saturday':sat,
+        }
+        print(data_entry)
+        add_to_db('timeTable',data_entry)
+        i = int(i)
+    return redirect(url_for('timetable'))  
+
+@app.route('/myBagTeacher')
+def myBagTeacher():
+    if 'teacherDashboard' in session:
+        option = get_from_airtable_record('teacherMaster','teacherMasterKey','15','gradeData','7D')
+        # key = get_from_airtable_record('subjectMaster','subjectKey')
+        subjects = get_from_airtable_field('subjectMaster','subject_name') 
+        day = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+        return render_template('mybagteacher.html',credentials=option,subject = subjects,days=day )
+    else:
+        return redirect(url_for('single'))
+     
+# @app.route('/sendNotes',methods=['POST'])
+# def sendNotes():
+#     note=request.form['']
+    
+# @app.route('/timetable')
+# def timetable():
+
+if __name__ == '__main__':
+    app.run(debug=True)

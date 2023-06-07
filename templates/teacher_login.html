@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+    {% block head %}  
+    
+    {% endblock %}
+    {% block navbar %}  
+    
+    {% endblock %}
+
+      {% block body%}
+      <form action="/teacherSubmitForm" method="POST" class="container">
+        <div class="mb-3">
+          
+          <label for="exampleFormControlInput1" class="form-label">Name : </label>
+          <input type="text" class="form-control" name="uid" id="uid" placeholder="1 - 12" required>
+        </div>
+        <div class="mb-3">
+          <label for="exampleFormControlInput1" class="form-label">Password : </label>
+          <input type="password" class="form-control" name="password" id="password" placeholder="1 - 12" required>
+        </div>
+        <div class="g-recaptcha" data-sitekey="6Le7dmAlAAAAACAJOM9WDG0AoAEJiTmY4M4oT82v"></div>
+        <br/>
+        <button type="submit">Submit1</button>
+      </form>
+      <h1 style="color:red;">{{ message }}</h1>
+      {% endblock %}
+    
+    {% block siuu %}
+    <nav class="navbar sticky-bottom bg-body-tertiary" style="height:80px">
+      <div class="container-fluid">
+        <a href="{{ url_for('single') }}"><button class="btn btn-success" >Login as student</button></a>
+      </div>
+    </nav>
+    {% endblock %}

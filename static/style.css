@@ -1,24 +1,22 @@
-body{
-    background-color: orange;
-    text-align: center;
+#captcha{
+    border-width: 1px;
+    border-color: black;
 }
-input[type=file] {
-    display:inline-block;
-    }
-img {
-    width:70%;
-    }
 
-h3{
-    color:green;
-    }
 
-h1{
-    font-weight: bold;
-    }
-
-hr{
-    border: 5px solid black;
-    border-radius: 5px;
-    }
-
+.background-color{
+    height: 80%;
+    width: 100%;
+    background-color: beige;
+    background-image: linear-gradient(to bottom left,#d6315d,purple,#0f097d);
+    color:white;
+}
+.grade{
+    height: 80%;
+    width: 80%;
+    background-color: rgba(0,0,0,0.75);
+    border-radius: 30px;
+}
+shaan{
+    background-color: #d6315d;
+}
