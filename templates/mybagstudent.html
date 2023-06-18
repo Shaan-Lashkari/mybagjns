@@ -21,7 +21,7 @@
           <div class="col-6">
             <select class="form-select" disabled>
               
-            <option>{{ credentials['gradeData'] }}</option>
+            <option>{{myBagData[0]['fields']['classDivision']}}</option>
             </select>
           </div>
         </div>
@@ -36,9 +36,9 @@
             </div>
             <div class="col-5">
               <select id="dayselect" name="dayselect" class="form-select">
-                {% for value in days %}
-                  <option value="{{value}}">{{value}}</option>
-                {% endfor %}
+               
+                  <option value="{{value}}">{{myBagData[0]['fields']['day']}}</option>
+                
               </select>
               
             </div>
@@ -59,7 +59,7 @@
     
   
     <br>
-    <label>Day : {{day_select}}</label>
+    <label>Day : {{myBagData[0]['fields']['day']}}</label>
     <hr>
     <div class="row">
       <div class="col-2">
@@ -92,31 +92,39 @@
             {{ i+1 }}
           </div>
           <div class="col-2"  >
-            <select class="form-select" name="period_{{i}}" aria-label="Default select example" >
-              <option value="-">-</option>
-            {% for value in subject %}
-                {% if UploadTimeTable[i] ==value %}
-                  <option selected  value="{{ UploadTimeTable[i]}}">{{ UploadTimeTable[i] }}</option>
-                {% else %}
-                
-                  <option  value="{{ value }}">{{ value }}</option>
-                
-                {% endif %}
-                {% endfor %}
+            <select class="form-select" name="period_{{i}}" aria-label="Default select example" disabled>
+                  <option selected  value="{{ myBagData[i]['fields']['subjectName'] }}">{{ myBagData[i]['fields']['subjectName'] }}</option>
               </select>
           </div>
         
           
           <div class="col-2"  >
-            <input class="form-check-input" type="checkbox" value="textbook-period_{{i}}" name="textbook-period">
+
+            {% if myBagData[i]['fields']['textbook'] %}
+            <input class="form-check-input" type="checkbox" value="textbook-period_{{i}}" name="textbook-period" checked disabled>
+            {% else %}
+            <input class="form-check-input" type="checkbox" value="textbook-period_{{i}}" name="textbook-period" disabled>
+            {% endif %}
           </div>
           <div class="col-2"  >
-            <input class="form-check-input" type="checkbox" value="notebook-period_{{i}}" name="notebook-period">
+            
+            {% if myBagData[i]['fields']['notebook'] %}
+            <input class="form-check-input" type="checkbox" value="notebook-period_{{i}}" name="notebook-period" checked disabled>
+            {% else %}
+            <input class="form-check-input" type="checkbox" value="notebook-period_{{i}}" name="notebook-period" disabled>
+            {% endif %}
           </div>
           <div class="col-2"  >
-            <input class="form-check-input" type="checkbox" value="workbook-period_{{i}}" name="workbook-period">
+            
+            {% if myBagData[i]['fields']['workbook'] %}
+            <input class="form-check-input" type="checkbox" value="workbook-period_{{i}}" name="workbook-period" checked disabled>
+            {% else %}
+            <input class="form-check-input" type="checkbox" value="workbook-period_{{i}}" name="workbook-period" disabled>
+            {% endif %}
           </div>
         </div>
+
+        <hr>
       <!-- {% endfor %} -->
       <div class="container">
         <div class="col-11">
