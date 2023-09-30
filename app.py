@@ -31,8 +31,22 @@ def add_to_db(table_name,dict_fields):
             },
         ]
     }
+    print('starting...')
     r = requests.post(endpoint,json=new_data,headers=header)
-   
+    if r.status_code == 422:
+        print('Fail To understand request')
+    
+    if r.status_code == 200:
+        print(' the request has succeeded')
+    print(r.status_code)
+    print('Milestone')
+    return r
+  
+def delete_record_airtable():
+    url = f"https://api.airtable.com/v0/{BASE_ID}/myBag/recI39gs6OzjseUUB"
+    
+    
+    pass
 
 
 def get_from_airtable_field(table_name,field):
@@ -192,7 +206,10 @@ def timetable():
         grade = teacher_data['gradeData']
         # key = get_from_airtable_record('subjectMaster','subjectKey')
         subjects = get_from_airtable_field('subjectMaster','subject_name') 
-        return render_template('timetable.html',credentials=grade,subject = subjects)
+        print(subjects)
+        timetable_records = get_from_airtable_record1(table_name='timetable',field_name='classDivision',field_value=grade,field_sort='Created',order='asc')
+        print(timetable_records[0]['fields']['monday'])
+        return render_template('timetable.html',credentials=grade,subject = subjects,timetable_data=timetable_records)
     else:
         return redirect(url_for('single'))
    
@@ -204,7 +221,7 @@ def submitTimetable():
         name = information['teacherName']
 
         
-        for i in range(1,13):
+        for i in range(0,9):
             i = str(i)
             tue = request.form['tuesday-period_'+i]
             mon = request.form['monday-period_'+i]
@@ -214,6 +231,7 @@ def submitTimetable():
             thu = request.form['thursday-period_'+i]
             fri = request.form['friday-period_'+i]
             sat = request.form['saturday-period_'+i]
+            
             data_entry= {
                 'classDivision':grade,
                 'period':int(i),
@@ -283,6 +301,7 @@ def submitDay():
         keys = []
         values = []
         count = -1
+        value = data[0]['fields']
         for d in data:
             count = count + 1
             value = data[count]['fields']
@@ -403,4 +422,4 @@ def studentMyBag():
 # def timetable():
 
 if __name__ == '__main__':
-    app.run(debug=False,host='0.0.0.0',port=5000)
+    app.run(debug=True,host='0.0.0.0',port=5000)
