@@ -44,10 +44,15 @@
           <div class="col">
             Period - {{ i }}
           </div>
+          
           <div class="col">
             <select class="form-select" name="monday-period_{{i}}" aria-label="Default select example">
-              <option value="-">-</option>
+              
+              {% if class_timetable_stat == False: %}
+              <option selected value="-">-</option>
+              {% else: %}
               <option selected value="{{ timetable_data[i]['fields']['monday'] }}">{{ timetable_data[i]['fields']['monday'] }}</option> 
+              {% endif %}
                 {% for value in subject %}
                 
                 
@@ -58,8 +63,11 @@
           </div>
           <div class="col">
             <select class="form-select" name="tuesday-period_{{i}}" aria-label="Default select example">
-              <option value="-">-</option>
+              {% if class_timetable_stat == False: %}
+              <option selected value="-">-</option>
+              {% else: %}
               <option selected value="{{ timetable_data[i]['fields']['tuesday'] }}">{{ timetable_data[i]['fields']['tuesday'] }}</option>
+              {% endif %}
               {% for value in subject %}
               
               <option value="{{ value }}">{{ value }}</option>
@@ -70,8 +78,11 @@
           </div>
           <div class="col">
             <select class="form-select" name="wednesday-period_{{i}}" aria-label="Default select example">
-              <option value="-">-</option>
+              {% if class_timetable_stat == False: %}
+              <option selected value="-">-</option>
+              {% else: %}
               <option selected value="{{ timetable_data[i]['fields']['wednesday'] }}">{{ timetable_data[i]['fields']['wednesday'] }}</option>
+              {% endif %}
               {% for value in subject %}
               
               <option value="{{ value }}">{{ value }}</option>
@@ -81,8 +92,11 @@
           </div>
           <div class="col">
             <select class="form-select" name="thursday-period_{{i}}" aria-label="Default select example">
-              <option value="-">-</option>
+              {% if class_timetable_stat == False: %}
+              <option selected value="-">-</option>
+              {% else: %}
               <option selected value="{{ timetable_data[i]['fields']['thursday'] }}">{{ timetable_data[i]['fields']['thursday'] }}</option>
+              {% endif %}
               {% for value in subject %}
               
               <option value="{{ value }}">{{ value }}</option>
@@ -92,8 +106,11 @@
           </div>
           <div class="col">
             <select class="form-select" name="friday-period_{{i}}" aria-label="Default select example">
-              <option value="{{ value }}">-</option>
+              {% if class_timetable_stat == False: %}
+              <option selected value="{{ value }}">-</option>
+              {% else: %}
               <option selected value="{{ timetable_data[i]['fields']['friday'] }}">{{ timetable_data[i]['fields']['friday'] }}</option>
+              {% endif %}
               {% for value in subject %}
               <option value="{{ value }}">{{ value }}</option>
               
@@ -102,8 +119,11 @@
           </div>
           <div class="col">
             <select class="form-select" name="saturday-period_{{i}}" aria-label="Default select example">
-              <option value="-">-</option>
+              {% if class_timetable_stat == False: %}
+              <option selected value="-">-</option>
+              {% else: %}
               <option selected value="{{ timetable_data[i]['fields']['saturday'] }}">{{ timetable_data[i]['fields']['saturday'] }}</option>
+              {% endif %}
               {% for value in subject %}
               <option value="{{ value }}">{{ value }}</option>
               

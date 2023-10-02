@@ -13,7 +13,7 @@ TABLE_NAME = "notesFromTeacher"
 API_KEY = "keyxJJCgmuon6ezwN"
 
 app= Flask(__name__)
-
+timetable_db_presence = False
 
 endpoint = f"https://api.airtable.com/v0/{BASE_ID}/{TABLE_NAME}"
 
@@ -103,7 +103,13 @@ def get_from_airtable_record1(table_name,field_name,field_value,field_sort,order
     return data['records']
 
 
-
+def update_record(table_name,record_id,dict_fields,field_name,field_value):
+    url = f"https://api.airtable.com/v0/{BASE_ID}/{table_name}/{record_id}?filterByFormula=AND({field_name}='{field_value}')"
+    payload = {
+        'fields': dict_fields
+            
+        }
+    r = requests.patch(url,json=payload,headers=header)
 
 
 app= Flask(__name__)
@@ -119,7 +125,7 @@ def single():
 @app.route('/student',methods=['POST','GET'])
 def studentLogin():
     session.permanent = True
-    
+    print('studentLoginComplete')
     grade = request.form['grade']
     division = request.form['division']
     name = request.form['name']
@@ -130,10 +136,13 @@ def studentLogin():
     # u_name = info['name']
     # return f'Name : { u_name }'
     
+
+    
 @app.route('/studentDb',methods=['POST','GET'])
 def studentDb():
     if 'student' in session:
         info = session["student"]
+        print('StudentDashboardAccessGranted')
         return render_template('student.html',studentData=info)
     else:
         return redirect(url_for('single'))
@@ -200,27 +209,43 @@ def teacherDb():
         
 @app.route('/timetable')
 def timetable():
-
+    global timetable_db_presence 
+    print('step1')
     if 'teacherDashboard' in session:
+        print('step2')
+        timetable_db_presence = False
         teacher_data = session['teacherDashboard']
         grade = teacher_data['gradeData']
         # key = get_from_airtable_record('subjectMaster','subjectKey')
         subjects = get_from_airtable_field('subjectMaster','subject_name') 
         print(subjects)
         timetable_records = get_from_airtable_record1(table_name='timetable',field_name='classDivision',field_value=grade,field_sort='Created',order='asc')
-        print(timetable_records[0]['fields']['monday'])
-        return render_template('timetable.html',credentials=grade,subject = subjects,timetable_data=timetable_records)
+        print("Timetable Records Value is :::::: -----------::::::::::::::::::",timetable_records)
+        if not len(timetable_records):
+            timetable_db_presence = False
+            print(timetable_db_presence)
+        else: 
+            
+            timetable_db_presence = True
+            print(timetable_db_presence)
+            
+        return render_template('timetable.html',credentials=grade,subject = subjects,timetable_data=timetable_records,class_timetable_stat = timetable_db_presence)
     else:
         return redirect(url_for('single'))
    
 @app.route('/submitTimetable',methods=['post'])
 def submitTimetable():
+    global timetable_db_presence 
+    
     if 'teacherDashboard' in session:
         information = session['teacherDashboard']
-        grade = information['gradeData']
-        name = information['teacherName']
-
         
+        grade = information['gradeData']
+        t_name = information['teacherName']
+        print(grade)
+        name = information['teacherName']
+        
+        data_updating_info = get_from_airtable_record1(table_name='timetable',field_name='classDivision',field_value='7D',field_sort='period',order='asc')
         for i in range(0,9):
             i = str(i)
             tue = request.form['tuesday-period_'+i]
@@ -233,6 +258,7 @@ def submitTimetable():
             sat = request.form['saturday-period_'+i]
             
             data_entry= {
+                'teacherName':t_name,
                 'classDivision':grade,
                 'period':int(i),
                 'monday':mon,
@@ -242,9 +268,21 @@ def submitTimetable():
                 'friday':fri,
                 'saturday':sat,
             }
-            print(data_entry)
-            add_to_db('timeTable',data_entry)
+            
             i = int(i)
+            print('\n',timetable_db_presence)
+            
+            if timetable_db_presence == False:
+                add_to_db('timeTable',dict_fields=data_entry)
+            else:    
+                record = data_updating_info[i]
+                record_identity = record['id']
+                update_record('timeTable',record_id=record_identity,dict_fields=data_entry,field_name='classDivision',field_value='7D')
+            
+            
+            print(data_entry)
+            
+            
         return redirect(url_for('timetable'))  
     else:
         return redirect(url_for('single'))
@@ -326,7 +364,9 @@ def submitDay():
 
 @app.route('/submitMyBag',methods=['POST'])
 def submitMyBag():
+    print('Submit My Bag Started - init.py')
     if 'teacherDashboard' in session:
+        print('teacher_dashboard- session existence proven')
         textbook_dict = {}
         notebook_dict = {}
         workbook_dict = {}
@@ -378,22 +418,23 @@ def submitMyBag():
         print(textbook_dict)
         print(notebook_dict)
         print(workbook_dict)
-        return redirect(url_for('teacherDb'))
+        return redirect(url_for('myBagTeacher'))
     else:
         return redirect(url_for('single'))
 
 @app.route('/timetableStudent')
 def timetableStudent():
+    print('timetableStudent- Function')
     if 'student' in session:
+        print('timetableStudent - Session True')
         grade = session['student']['grade']
         division = session['student']['division']
-        try:
-            timetable_retrieved = get_from_airtable_record1('timeTable','classDivision',grade+division,'period','asc')
-            print(timetable_retrieved[1]['fields'])
-            
-            return render_template('timetable_student.html',timetableData=timetable_retrieved)
-        except:
-            return redirect(url_for('studentDb'))
+    
+        timetable_retrieved = get_from_airtable_record1('timeTable','classDivision',grade+division,'period','asc')
+        print(timetable_retrieved)
+        
+        return render_template('timetable_student.html',timetableData=timetable_retrieved)
+        
     else:
         return redirect(url_for('single'))
     
@@ -404,14 +445,13 @@ def studentMyBag():
     if 'student' in session:
         grade = session['student']['grade']
         division = session['student']['division']
-        try:
-            timetable_retrieved = get_from_airtable_record1('myBag','classDivision',grade+division,'period','asc')
-            
-            print(timetable_retrieved)
-            
-            return render_template('mybagstudent.html',myBagData=timetable_retrieved,credentials='',subject ='',day_select='',UploadTimeTable='')
-        except:
-            return redirect(url_for('studentDb'))
+    
+        timetable_retrieved = get_from_airtable_record1('myBag','classDivision',grade+division,'period','asc')
+        
+        print(timetable_retrieved)
+        
+        return render_template('mybagstudent.html',myBagData=timetable_retrieved,credentials='',subject ='',day_select='',UploadTimeTable='')
+    
     else:
         return redirect(url_for('single'))
 # @app.route('/sendNotes',methods=['POST'])
