@@ -5,7 +5,15 @@ import requests
 import airtable
 from pydantic import BaseModel
 import json
-from datetime import datetime as d
+from datetime import date as d
+
+ 
+# Returns the current local date
+today = d.today()
+print("Today date is: ", today)
+
+
+mybag_essentials = []
 
 sessionActive=""
 BASE_ID = "appTZGqtLSClGCdCo"
@@ -111,6 +119,18 @@ def update_record(table_name,record_id,dict_fields,field_name,field_value):
         }
     r = requests.patch(url,json=payload,headers=header)
 
+def identified_rec_for_mybag_updation():
+    try:
+        records_for_mybag_updation = get_from_airtable_record1('myBag','classDivision','7D','period','asc')
+        x = []
+        for i in records_for_mybag_updation:
+            print(i)
+            if i['fields']['date'] == str(today):
+                x.append(i)
+    except:
+        pass
+            
+    return x
 
 app= Flask(__name__)
 
@@ -297,7 +317,7 @@ def myBagTeacher():
         day = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
         count = 0
         try:
-            informationTimeTable = session['timetableUpload']
+            informationTimeTable = mybag_essentials
             print(informationTimeTable[0],'asasasasa')
             # data = []
             # for d in informationTimeTable:
@@ -325,6 +345,7 @@ def myBagTeacher():
 
 @app.route('/submitDay',methods=['POST','GET'])
 def submitDay():
+    global mybag_essentials
     if 'teacherDashboard' in session:
         day = request.form['dayselect'].lower()
         date = request.form['dateselect'].lower()
@@ -354,7 +375,7 @@ def submitDay():
                 keys.append(key_dict)
                 values.append(value_dict)
 
-        session['timetableUpload'] = [values,day,date]
+        mybag_essentials = [values,day,date]
         # print(horizontal_data)
         # print(json.dumps(horizontal_data, indent = 1))
         return redirect(url_for('myBagTeacher'))
@@ -364,6 +385,7 @@ def submitDay():
 
 @app.route('/submitMyBag',methods=['POST'])
 def submitMyBag():
+    global mybag_essentials
     print('Submit My Bag Started - init.py')
     if 'teacherDashboard' in session:
         print('teacher_dashboard- session existence proven')
@@ -376,51 +398,58 @@ def submitMyBag():
             subject = request.form[f'period_{i}']
             subjects.append(subject)
             pass    
-        
-        day = session['timetableUpload'][1]
-        date = session['timetableUpload'][2]
-        textbook = request.form.getlist('textbook-period')
-    
-        notebook = request.form.getlist('notebook-period')
-    
-        workbook = request.form.getlist('workbook-period')
-    
-        for count in range(0,12):
-            #    textbook
-            if f'textbook-period_{count}' in textbook:
-                textbook_dict[f'textbook-period_{count}'] = True
-            else:
-                textbook_dict[f'textbook-period_{count}'] = False
-            #    notebook
-            if f'notebook-period_{count}' in notebook:
-                notebook_dict[f'notebook-period_{count}'] = True
-            else:
-                notebook_dict[f'notebook-period_{count}'] = False
-            #   workbook
-            if f'workbook-period_{count}' in workbook:
-                workbook_dict[f'workbook-period_{count}'] = True
-            else:
-                workbook_dict[f'workbook-period_{count}'] = False
-        
-            dict_fields = {
-                'classDivision':classDivision,
-                'subjectName':subjects[count],
-                'day':day,
-                'date':date,
-                'period':count+1,
-                'textbook':textbook_dict[f'textbook-period_{count}'],
-                'notebook':notebook_dict[f'notebook-period_{count}'],
-                'workbook':workbook_dict[f'workbook-period_{count}'],
-                
-            }
-            add_to_db('myBag',dict_fields)
+        if not len(mybag_essentials):
+            pass
+        else:
+            print(mybag_essentials)
+            day = mybag_essentials[1]
+            date = mybag_essentials[2]
             
-        print(textbook_dict)
-        print(notebook_dict)
-        print(workbook_dict)
-        return redirect(url_for('myBagTeacher'))
+            
+            
+            textbook = request.form.getlist('textbook-period')
+        
+            notebook = request.form.getlist('notebook-period')
+        
+            workbook = request.form.getlist('workbook-period')
+        
+            for count in range(0,12):
+                #    textbook
+                if f'textbook-period_{count}' in textbook:
+                    textbook_dict[f'textbook-period_{count}'] = True
+                else:
+                    textbook_dict[f'textbook-period_{count}'] = False
+                #    notebook
+                if f'notebook-period_{count}' in notebook:
+                    notebook_dict[f'notebook-period_{count}'] = True
+                else:
+                    notebook_dict[f'notebook-period_{count}'] = False
+                #   workbook
+                if f'workbook-period_{count}' in workbook:
+                    workbook_dict[f'workbook-period_{count}'] = True
+                else:
+                    workbook_dict[f'workbook-period_{count}'] = False
+            
+                dict_fields = {
+                    'classDivision':classDivision,
+                    'subjectName':subjects[count],
+                    'day':day,
+                    'date':date,
+                    'period':count,
+                    'textbook':textbook_dict[f'textbook-period_{count}'],
+                    'notebook':notebook_dict[f'notebook-period_{count}'],
+                    'workbook':workbook_dict[f'workbook-period_{count}']
+                    
+                }
+                add_to_db('myBag',dict_fields)
+                
+            print(textbook_dict)
+            print(notebook_dict)
+            print(workbook_dict)
+            return redirect(url_for('myBagTeacher'))
     else:
         return redirect(url_for('single'))
+
 
 @app.route('/timetableStudent')
 def timetableStudent():
