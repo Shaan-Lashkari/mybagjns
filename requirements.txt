@@ -1,15 +1,8 @@
-click==7.1.2
 Flask==1.1.2
-gunicorn==20.0.4
-itsdangerous==1.1.0
-Jinja2==2.11.2
-MarkupSafe==1.1.1
-opencv-python==4.2.0.34
-numpy==1.18.5
-Werkzeug==1.0.1
 datetime==4.8
 airtable==0.4.8
 requests==2.28.2
+<<<<<<< HEAD
 pydantic==1.10.8
 airtable==0.4.8
 blinker==1.6.2
@@ -34,3 +27,12 @@ urllib3==1.26.15
 Werkzeug==2.3.3
 wincertstore==0.2
 zipp==3.15.0
+=======
+
+
+
+
+
+
+
+>>>>>>> 31609f33db41ec109e86900580821b20fec5bd5c
